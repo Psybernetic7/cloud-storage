@@ -1,0 +1,66 @@
+"use server";
+
+import { Query, ID } from "node-appwrite";
+import { createAdminClient } from "../appwrite";
+import { appwriteConf } from "../appwrite/config";
+import { parseStringify } from "../utils";
+
+const getUserByEmail = async (email: string) => {
+  const { databases } = await createAdminClient();
+
+  const result = await databases.listDocuments(
+    appwriteConf.databaseId,
+    appwriteConf.usersCollectionId,
+    [Query.equal("email", [email])],
+  );
+
+  return result.total > 0 ? result.documents[0] : null;
+};
+
+const handleError = (error: unknown, message: string) => {
+  console.log(error, message);
+  throw error;
+};
+
+const sendEmailOTP = async ({ email }: { email: string }) => {
+  const { account } = await createAdminClient();
+
+  try {
+    const session = await account.createEmailToken(ID.unique(), email);
+
+    return session.userId;
+  } catch (error) {
+    handleError(error, "Failed to send email OTP");
+  }
+};
+
+export const createAccount = async ({
+  fullName,
+  email,
+}: {
+  fullName: string;
+  email: string;
+}) => {
+  const existingUser = await getUserByEmail(email);
+
+  const accountId = await sendEmailOTP({ email });
+  if (!accountId) throw new Error("Failed to send an OTP");
+
+  if (!existingUser) {
+    const { databases } = await createAdminClient();
+    await databases.createDocument(
+      appwriteConf.databaseId,
+      appwriteConf.usersCollectionId,
+      ID.unique(),
+      {
+        fullName,
+        email,
+        avatar:
+          "https://imgs.search.brave.com/zpxFwZrEirQfvPDJZ608jM9dUpT2SZBVOYHiTkzdoqg/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly93d3cu/cmVkZGl0c3RhdGlj/LmNvbS9hdmF0YXJz/L2RlZmF1bHRzL3Yy/L2F2YXRhcl9kZWZh/dWx0XzYucG5n",
+        accountId,
+      },
+    );
+  }
+
+  return parseStringify({ accountId });
+};
