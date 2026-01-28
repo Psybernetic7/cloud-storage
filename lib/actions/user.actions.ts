@@ -1,10 +1,11 @@
 "use server";
 
 import { Query, ID } from "node-appwrite";
-import { createAdminClient } from "../appwrite";
+import { createAdminClient, createSessionClient } from "../appwrite";
 import { appwriteConf } from "../appwrite/config";
 import { parseStringify } from "../utils";
 import { cookies } from "next/headers";
+import { avatarPlaceholderUrl } from "@/constants";
 
 const getUserByEmail = async (email: string) => {
   const { databases } = await createAdminClient();
@@ -56,8 +57,7 @@ export const createAccount = async ({
       {
         fullName,
         email,
-        avatar:
-          "https://imgs.search.brave.com/zpxFwZrEirQfvPDJZ608jM9dUpT2SZBVOYHiTkzdoqg/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly93d3cu/cmVkZGl0c3RhdGlj/LmNvbS9hdmF0YXJz/L2RlZmF1bHRzL3Yy/L2F2YXRhcl9kZWZh/dWx0XzYucG5n",
+        avatar: avatarPlaceholderUrl,
         accountId,
       },
     );
@@ -87,4 +87,18 @@ export const verifySecret = async ({
   } catch (error) {
     handleError(error, "Failed to verify OTP");
   }
+};
+
+export const getCurrentUser = async () => {
+  const { databases, account } = await createSessionClient();
+  const result = await account.get();
+  const user = await databases.listDocuments(
+    appwriteConf.databaseId,
+    appwriteConf.usersCollectionId,
+    [Query.equal("accountId", result.$id)],
+  );
+
+  if (user.total <= 0) return null;
+
+  return parseStringify(user.documents[0]);
 };
