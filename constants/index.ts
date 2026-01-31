@@ -82,6 +82,6 @@ export const sortTypes = [
 ];
 
 export const avatarPlaceholderUrl =
-  "https://toppng.com/uploads/preview/avatar-png-115540218987bthtxfhls.png";
+  "https://img.freepik.com/free-vector/smiling-young-man-illustration_1308-174669.jpg?semt=ais_hybrid&w=740&q=80";
 
 export const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
