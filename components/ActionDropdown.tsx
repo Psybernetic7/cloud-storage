@@ -20,6 +20,7 @@ import { Models } from "node-appwrite";
 import { actionsDropdownItems } from "@/constants";
 import Link from "next/link";
 import { constructDownloadUrl } from "@/lib/utils";
+import { toast } from "sonner";
 import { DialogTitle } from "@radix-ui/react-dialog";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
@@ -31,7 +32,13 @@ import {
 import { usePathname } from "next/navigation";
 import { FileDetails, ShareInput } from "./ActionsModalContent";
 
-const ActionDropdown = ({ file }: { file: Models.Document }) => {
+const ActionDropdown = ({
+  file,
+  currentUserEmail,
+}: {
+  file: Models.Document;
+  currentUserEmail: string;
+}) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [action, setAction] = useState<ActionType | null>(null);
@@ -56,12 +63,13 @@ const ActionDropdown = ({ file }: { file: Models.Document }) => {
     const actions = {
       rename: () =>
         renameFile({ fileId: file.$id, name, extension: file.extension, path }),
-      share: () =>
-        updateFileUsers({
-          fileId: file.$id,
-          emails,
-          path,
-        }),
+      share: () => {
+        if (emails.some((e) => e.trim() === currentUserEmail)) {
+          toast.error("You cannot share a file with yourself.");
+          return Promise.resolve(false);
+        }
+        return updateFileUsers({ fileId: file.$id, emails, path });
+      },
       delete: () =>
         deleteFile({
           fileId: file.$id,

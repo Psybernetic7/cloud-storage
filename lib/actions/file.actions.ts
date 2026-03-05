@@ -108,7 +108,35 @@ export const getFiles = async ({
       queries,
     );
 
-    return parseStringify(files);
+    const ownerIds = [
+      ...new Set(
+        files.documents
+          .map((f) => f.owner)
+          .filter((id) => typeof id === "string"),
+      ),
+    ] as string[];
+
+    const ownerMap: Record<string, Models.Document> = {};
+    if (ownerIds.length > 0) {
+      const owners = await databases.listDocuments(
+        appwriteConf.databaseId,
+        appwriteConf.usersCollectionId,
+        [Query.equal("$id", ownerIds)],
+      );
+      owners.documents.forEach((u) => {
+        ownerMap[u.$id] = u;
+      });
+    }
+
+    const populatedFiles = {
+      ...files,
+      documents: files.documents.map((file) => ({
+        ...file,
+        owner: ownerMap[file.owner as string] ?? file.owner,
+      })),
+    };
+
+    return parseStringify(populatedFiles);
   } catch (error) {
     handleError(error, "Failed to get files");
   }

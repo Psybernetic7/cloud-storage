@@ -8,13 +8,15 @@ import { FormattedDateTime } from "@/components/FormattedDateTime";
 import { Thumbnail } from "@/components/Thumbnail";
 import { Separator } from "@/components/ui/separator";
 import { getFiles, getTotalSpaceUsed } from "@/lib/actions/file.actions";
+import { getCurrentUser } from "@/lib/actions/user.actions";
 import { convertFileSize, getUsageSummary } from "@/lib/utils";
 
 const Dashboard = async () => {
   // Parallel requests
-  const [files, totalSpace] = await Promise.all([
+  const [files, totalSpace, currentUser] = await Promise.all([
     getFiles({ types: [], limit: 10 }),
     getTotalSpaceUsed(),
+    getCurrentUser(),
   ]);
 
   // Get usage summary
@@ -85,7 +87,7 @@ const Dashboard = async () => {
                       className="caption"
                     />
                   </div>
-                  <ActionDropdown file={file} />
+                  <ActionDropdown file={file} currentUserEmail={currentUser?.email ?? ""} />
                 </div>
               </Link>
             ))}
