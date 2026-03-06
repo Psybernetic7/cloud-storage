@@ -7,8 +7,8 @@
     <a href="#features">Features</a> •
     <a href="#tech-stack">Tech Stack</a> •
     <a href="#getting-started">Getting Started</a> •
-    <a href="#environment-variables">Environment Variables</a> •
-    <a href="#deployment">Deployment</a>
+    <a href="#environment-variables">Environment Variables</a> 
+    
   </p>
 
 ![Next.js](https://img.shields.io/badge/Next.js-15-black?style=flat-square&logo=next.js)
@@ -110,7 +110,7 @@ Full-featured cloud storage web application that lets users securely upload, org
 ```bash
 # 1. Clone the repository
 git clone https://github.com/Psybernetic7/cloud-storage.git
-cd store_it
+cd cloud-storage
 
 # 2. Install dependencies
 npm install
